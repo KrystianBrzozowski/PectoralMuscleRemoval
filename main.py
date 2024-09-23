@@ -228,15 +228,48 @@ class ImageProcessor:
         plt.imsave(file_path, image_to_save)
         print(f"Image saved to {file_path}")
 
-# Example usage:
-processor = ImageProcessor()
+    def process_all_images(self, output_dir='output'):
+        """
+        Process all images in the loaded collection and save the results.
+
+        Parameters:
+        - output_dir (str): Directory where the processed images will be saved.
+        """
+        if self.images is None:
+            raise ValueError("Images not loaded. Call load_images() first.")
+
+        # Ensure the output directory exists
+        os.makedirs(output_dir, exist_ok=True)
+
+        for index in range(len(self.images)):
+            print(f"\nProcessing image {index + 1} of {len(self.images)}")
+
+            self.select_image(index=index)
+            try:
+                # Perform preprocessing steps
+                self.preprocess_image()
+                self.create_bright_mask()
+                self.apply_morphology()
+                self.remove_contours()
+                self.create_cropped_image()
+                
+                # Optionally, calculate the pixel ratio
+                self.calculate_pixel_ratio()
+                
+                # Save the processed image
+                output_filename = os.path.join(output_dir, f'processed_image_{index}.png')
+                self.save_result_image(output_filename)
+                
+                print(f"Image {index + 1} processed and saved to {output_filename}")
+            
+            except Exception as e:
+                print(f"An error occurred while processing image {index + 1}: {e}")
+
+# Initialize the processor
+processor = ImageProcessor(image_dir='processed_images/*.png')
+
+# Load images from the directory
 processor.load_images()
-processor.select_image(index=1040)
-processor.preprocess_image()
-processor.create_bright_mask()
-processor.apply_morphology()
-processor.remove_contours()
-processor.create_cropped_image()
-processor.calculate_pixel_ratio()
-processor.display_results()
-processor.save_result_image('app/documents/test.png')
+
+# Process all images and save results
+processor.process_all_images(output_dir='output')
